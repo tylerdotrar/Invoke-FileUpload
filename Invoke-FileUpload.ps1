@@ -1,7 +1,7 @@
 ﻿function Invoke-FileUpload {
 #.SYNOPSIS
 # Rudimentary custom Python-based flask server file uploading.
-# ARBITRARY VERSION NUMBER:  1.1.2
+# ARBITRARY VERSION NUMBER:  1.1.3
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -11,24 +11,25 @@
 # PowerShell Core is not supported because I'm ignorant about .NET.
 #
 # Parameters:
-#    -File    -->  File to be uploaded to the flask server
-#    -URL     -->  URL of the server hosted upload page
+#    -File    -->   File to be uploaded to the server
+#    -URL     -->   URL of the server upload webpage
+#    -Help    -->   Return Get-Help information
 #    
 # Example Usage:
-#    [] PS C:\Users\Bobby> Invoke-FileUpload -File "NotReal.txt" -URL https://localhost:8081/upload
-#       File does not exist!
-
-#    [] PS C:\Users\Bobby> Invoke-FileUpload -File "RealFile.txt" -URL https://localhost:8081/upload
-#       Server Response (HTTPS): SUCCESSFUL UPLOAD
+#     [ ]  PS C:\Users\Bobby> Invoke-FileUpload -File "NotReal.txt" -URL https://localhost:8081/upload
+#      -   File does not exist!
 #
-#    [] PS C:\Users\Bobby> upload
-#       Enter filename: RealPic.png
-#       Enter server URL: https://localhost:8081/upload
+#     [ ]  PS C:\Users\Bobby> Invoke-FileUpload -File "RealFile.txt" -URL https://localhost:8081/upload
+#      -   Server Response (HTTPS): SUCCESSFUL UPLOAD
 #
-#       Server Response (HTTP): SUCCESSFUL UPLOAD
+#     [ ]  PS C:\Users\Bobby> upload
+#      -   Enter filename: RealPic.png
+#      -   Enter server URL: https://localhost:8081/upload
+#      -
+#      -   Server Response (HTTP): SUCCESSFUL UPLOAD
 #
-#    [] PS C:\Users\Bobby> upload -File "RealFile.txt" -URL localhost:8081/upload
-#       URL neither http or https!
+#     [ ]  PS C:\Users\Bobby> upload -File "RealFile.txt" -URL localhost:8081/upload
+#      -   URL neither http or https!
 
 
     [Alias('upload')]
@@ -57,7 +58,7 @@
     }
 
     
-    # If using HTTPS, bypass self-signed cert
+    # If using HTTPS, bypass self-signed certs
     if ($URL -like "https://*") {
         $CertBypass = @"
     using System.Net;
@@ -142,9 +143,11 @@
     # This error will appear if you put in an incorrect URL (and other things)
     Catch { Write-Host "File failed to upload!" -ForegroundColor DarkRed; return }
 
-    # Cleanup Hanging Processes
+    # Cleanup Hanging Processes / Remove Self-Signed Certificate Bypass
     Finally {
         if ($NULL -ne $httpClient) { $httpClient.Dispose() }
         if ($NULL -ne $Transmit) { $Transmit.Dispose() }
+
+        [System.Net.ServicePointManager]::CertificatePolicy = $NULL
     }
 }
