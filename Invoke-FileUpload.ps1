@@ -26,7 +26,7 @@
 #      -   Enter filename: RealPic.png
 #      -   Enter server URL: https://localhost:8081/upload
 #      -
-#      -   Server Response (HTTP): SUCCESSFUL UPLOAD
+#      -   Server Response (HTTPS): SUCCESSFUL UPLOAD
 #
 #     [ ]  PS C:\Users\Bobby> upload -File "RealFile.txt" -URL localhost:8081/upload
 #      -   URL neither http or https!
@@ -42,7 +42,7 @@
 
     # Return because PowerShell Core is not yet supported.
     if ($PSVersionTable.PSEdition -eq 'Core') {
-        Write-Host "Current version does not supported PowerShell Core!" -ForegroundColor DarkRed
+        Write-Host "Current version does not support PowerShell Core!" -ForegroundColor DarkRed
         return
     }
 
