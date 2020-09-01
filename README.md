@@ -14,6 +14,8 @@ can upload files to said system hosting the server over an HTTPS connection (*ut
 certificates*) entirely via PowerShell.  The server is specifically configured to only accept POST
 requests from the script.
 
+Tested on PowerShell **v5.1.19041.1** and **v7.0.3** (Core).
+
 # upload_server.py
 The server is entirely self contained, not requiring HTML templates or communications with a web
 browser.  By default, the server utilizes port **54321**, with **/upload** being the only hosted
@@ -65,7 +67,7 @@ Modify the allowed extensions via the **[UPLOAD_EXTENSIONS]** variable.
 As of arbitrary version number 2.0.1, the script now supports both legacy PowerShell (aka Desktop)
 and PowerShell Core.  It was a pain in the ass.  The only caveat is when using PowerShell Core,
 file MIME types are simply generated based off of a list of file extensions instead of proper file contents
-(*this is due to .NET Core not having a MimeMapping class**).
+(*this is due to .NET Core not having a MimeMapping class*).
 
 If the **-File** or **-URL** parameters aren't used the user will be prompted for those values.
 
