@@ -1,5 +1,4 @@
-import os
-import flask
+import os, flask, argparse
 from flask import request
 from werkzeug.utils import secure_filename
 
@@ -23,5 +22,13 @@ def upload_file():
         return 'FILENAME NULL'
     return 'UPLOAD ONLY'
 
+# PARAMETERS
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=54321, ssl_context='adhoc', debug=False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ip', default='0.0.0.0')
+    parser.add_argument('--port', default=54321, type=int)
+    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--ssl', action='store_const', const='adhoc', default=None)
+    args = parser.parse_args()
+
+    app.run(host=args.ip, port=args.port, ssl_context=args.ssl, debug=args.debug)
