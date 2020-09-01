@@ -1,6 +1,6 @@
 import os
 import flask
-from flask import send_from_directory, request
+from flask import request
 from werkzeug.utils import secure_filename
 
 app = flask.Flask(__name__, static_url_path='')
@@ -8,7 +8,7 @@ app = flask.Flask(__name__, static_url_path='')
 app.config['UPLOAD_PATH'] = './uploads'
 app.config['UPLOAD_EXTENSIONS'] = ['.jpg','.png','.pdf','.txt','.zip']
 
-# FILE UPLOADING
+# FILE UPLOAD
 @app.route('/upload', methods=['GET','POST'])
 def upload_file():
     if request.method == 'POST':
@@ -24,4 +24,4 @@ def upload_file():
     return 'UPLOAD ONLY'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=54321,ssl_context='adhoc',debug=False)
+    app.run(host='0.0.0.0', port=54321, ssl_context='adhoc', debug=False)
