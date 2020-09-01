@@ -1,35 +1,34 @@
 ﻿function Invoke-FileUpload {
 #.SYNOPSIS
-# Rudimentary custom Python-based flask server file uploading.
-# ARBITRARY VERSION NUMBER:  1.1.3
+# Python x PowerShell file transfer.
+# ARBITRARY VERSION NUMBER:  2.0.1
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
-# Script designed to upload files to a custom made Python-based flask server.  Meant to be custom by
-# modifying specific packet information, not require HTML templates, and only require the 'server.py'
-# and this script.  Server should be configurable, able to toggle between HTTP and HTTPS. Currently,
-# PowerShell Core is not supported because I'm ignorant about .NET.
+# Script designed to upload files to a custom Python-based flask web server.  Supports HTTP and HTTPS
+# protocols.  Python server should only accept files sent from this script due to a modified content
+# disposition header name. Version 2.0.0 now supprts PowerShell Core.  
 #
 # Parameters:
-#    -File    -->   File to be uploaded to the server
+#    -File    -->   File to upload to the web server
 #    -URL     -->   URL of the server upload webpage
 #    -Help    -->   Return Get-Help information
 #    
 # Example Usage:
-#     [ ]  PS C:\Users\Bobby> Invoke-FileUpload -File "NotReal.txt" -URL https://localhost:8081/upload
-#      -   File does not exist!
+#    [ ]  PS C:\Users\Bobby> Invoke-FileUpload -File "NotReal.txt" -URL https://localhost:8081/upload
+#     -   File does not exist!
 #
-#     [ ]  PS C:\Users\Bobby> Invoke-FileUpload -File "RealFile.txt" -URL https://localhost:8081/upload
-#      -   Server Response (HTTPS): SUCCESSFUL UPLOAD
+#    [ ]  PS C:\Users\Bobby> Invoke-FileUpload -File "RealFile.txt" -URL https://localhost:8081/upload
+#     -   Server Response (HTTPS): SUCCESSFUL UPLOAD
 #
-#     [ ]  PS C:\Users\Bobby> upload
-#      -   Enter filename: RealPic.png
-#      -   Enter server URL: https://localhost:8081/upload
-#      -
-#      -   Server Response (HTTPS): SUCCESSFUL UPLOAD
+#    [ ]  PS C:\Users\Bobby> upload
+#     -   Enter filename: RealPic.png
+#     -   Enter server URL: https://localhost:8081/upload
+#     -
+#     -   Server Response (HTTPS): SUCCESSFUL UPLOAD
 #
-#     [ ]  PS C:\Users\Bobby> upload -File "RealFile.txt" -URL localhost:8081/upload
-#      -   URL neither http or https!
+#    [ ]  PS C:\Users\Bobby> upload -File "RealFile.txt" -URL localhost:8081/upload
+#     -   URL neither http or https!
 
 
     [Alias('upload')]
@@ -38,13 +37,6 @@
 
     # Return Get-Help information
     if ($Help) { return Get-Help Invoke-FileUpload }
-
-
-    # Return because PowerShell Core is not yet supported.
-    if ($PSVersionTable.PSEdition -eq 'Core') {
-        Write-Host "Current version does not support PowerShell Core!" -ForegroundColor DarkRed
-        return
-    }
 
 
     # Prompt for File and/or Server URL
@@ -58,31 +50,44 @@
     }
 
     
-    # If using HTTPS, bypass self-signed certs
+    # Bypass self-signed certs (HTTPS)
     if ($URL -like "https://*") {
+
         $CertBypass = @"
-    using System.Net;
-    using System.Security.Cryptography.X509Certificates;
-    public class TrustAllCertsPolicy : ICertificatePolicy {
-        public bool CheckValidationResult(
-            ServicePoint srvPoint, X509Certificate certificate,
-            WebRequest request, int certificateProblem) {
-            return true;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+namespace SelfSignedCerts
+{
+    public class Bypass
+    {
+         public static Func<HttpRequestMessage,X509Certificate2,X509Chain,SslPolicyErrors,Boolean> ValidationCallback = 
+            (message, cert, chain, errors) => {
+                return true; 
+            };
+    }
+}
+"@
+        $Protocol = "HTTPS"
+
+        if ($PSVersionTable.PSEdition -eq 'Core') {
+            Add-Type $CertBypass
+        }
+        else {
+            Add-Type -AssemblyName System.Net.Http
+            Add-Type $CertBypass -ReferencedAssemblies System.Net.Http
         }
     }
-"@
 
-        Add-Type $CertBypass
-        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
-        $CommType = "HTTPS"
+    # Continue regularly (HTTP)
+    elseif ( $URL -like "http://*") {
+        $Protocol = "HTTP"
     }
 
-    # If using HTTP, continue regularly
-    elseif ( $URL -like "http://*") { $CommType = "HTTP" }
-
-
-    # Verify URL
+    # Incorrect URL format (neither)
     else {
         Write-Host "URL neither http or https!" -ForegroundColor DarkRed
         return
@@ -90,26 +95,57 @@
     
 
     # Verify File
-    if ( !(Test-Path -LiteralPath $File) ) {
-        Write-Host "File does not exist!" -ForegroundColor DarkRed
-        return
-    }
-
-    else {
+    if (Test-Path -LiteralPath $File) {
         $TempFileName = Split-Path -Leaf $File
         $File = (Get-Item $File).FullName
     }
 
+    else {
+        Write-Host "File does not exist!" -ForegroundColor DarkRed
+        return
+    }
 
-    # Get file Mime type (Content-Type)
-    Add-Type -AssemblyName System.Web
-    $ContentType = [System.Web.MimeMapping]::GetMimeMapping($File)
+
+    # Mime Type Detection (PowerShell Core)
+    if ($PSVersionTable.PSEdition -eq 'Core') {
+
+        # Create Content Type Map
+        $MimeTypeMap = @{
+	        ".txt"  = "text/plain";
+	        ".jpg"  = "image/jpeg";
+	        ".jpeg" = "image/jpeg";
+	        ".png"  = "image/png";
+	        ".gif"  = "image/gif";
+	        ".zip"  = "application/zip";
+	        ".rar"  = "application/x-rar-compressed";
+	        ".gzip" = "application/x-gzip";
+	        ".json" = "application/json";
+	        ".xml"  = "application/xml";
+        }
+
+        # Get file Mime type (Content-Type)
+        $Extension = (Get-Item $File).Extension.ToLower()
+        $ContentType = $MimeTypeMap[$Extension]
+    }
+
+    # Mime Type Detection (Desktop PowerShell)
+    else {
+
+        # Get file Mime type (Content-Type)
+        Add-Type -AssemblyName System.Web
+        $ContentType = [System.Web.MimeMapping]::GetMimeMapping($File)
+    }
 
 
     # Create a Class for Sending / Receiving HTTP(s) Data
     Add-Type -AssemblyName System.Net.Http
-    $httpClientHandler = New-Object System.Net.Http.HttpClientHandler
-    $httpClient = New-Object System.Net.Http.Httpclient $httpClientHandler
+    $httpClientHandler = [System.Net.Http.HttpClientHandler]::new()
+
+    if ($Protocol -eq 'HTTPS') {
+        $httpClientHandler.ServerCertificateCustomValidationCallback = [SelfSignedCerts.Bypass]::ValidationCallback
+    }
+
+    $httpClient = [System.Net.Http.HttpClient]::new($httpClientHandler)
 
 
     ## Start Multipart Form Creation ##
@@ -136,18 +172,20 @@
         $Transmit = $httpClient.PostAsync($URL, $MultipartContent).Result
         $ServerMessage = $Transmit.Content.ReadAsStringAsync().Result
 
-        Write-Host "Server Response ($CommType): " -ForegroundColor Yellow -NoNewline
+        Write-Host "Server Response ($Protocol): " -ForegroundColor Yellow -NoNewline
         Write-Host $ServerMessage
     }
 
     # This error will appear if you put in an incorrect URL (and other things)
-    Catch { Write-Host "File failed to upload!" -ForegroundColor DarkRed; return }
+    Catch { 
+        Write-Host "File failed to upload!" -ForegroundColor DarkRed
+        return
+    }
 
     # Cleanup Hanging Processes / Remove Self-Signed Certificate Bypass
     Finally {
         if ($NULL -ne $httpClient) { $httpClient.Dispose() }
         if ($NULL -ne $Transmit) { $Transmit.Dispose() }
-
-        [System.Net.ServicePointManager]::CertificatePolicy = $NULL
+        if ($NULL -ne $FileStream) { $FileStream.Dispose() }
     }
 }
