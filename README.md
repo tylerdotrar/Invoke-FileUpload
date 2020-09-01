@@ -17,9 +17,21 @@ requests from the script.
 # upload_server.py
 The server is entirely self contained, not requiring HTML templates or communications with a web
 browser.  By default, the server utilizes port **54321**, with **/upload** being the only hosted
-webpage -- the default (local) URL for the web server is **https://localhost:54321/upload**.
+webpage -- the default (local) URL for the web server is **http://localhost:54321/upload**.
 
-To use HTTP instead of HTTPS, remove **ssl_context='adhoc'** from the bottom line.
+As of version 2.0.1, **upload_server.py** now supports parameters for quick configuration.
+
+**PARAMETERS:**
+
+ *[] **--ssl**  (Enable HTTPS)*
+ 
+ *[] **--debug**  (Enable debugger)*
+ 
+ *[] **--ip**  (Change default IP address)*
+ 
+ *[] **--port**  (Change default port)*
+ 
+**Syntax:** PS C:\Users\Bobby> *python3 .\upload_server.py --port 8081 --ssl* 
 
 The server is also configured to respond with successful **200** status codes, regardless of if the upload
 was successful; the response message should indicate the actual upload status or error.
@@ -36,7 +48,8 @@ was successful; the response message should indicate the actual upload status or
 
 **ACCEPTED FILETYPES:**
 
-By default, the server only accepts '**.png**', '**.jpg**', '**.pdf**', '**.txt**', and '**.zip**' files.
+By default, the server accepts '**.png**', '**.jpg**', '**.pdf**', '**.txt**', and '**.zip**' files.
+Modify the allowed extensions via the **[UPLOAD_EXTENSIONS]** variable.
 
 **REQUIREMENTS:**
 
@@ -49,8 +62,10 @@ By default, the server only accepts '**.png**', '**.jpg**', '**.pdf**', '**.txt*
   *[] Folder named "**uploads**" in the same directory as the server*
 
 # Invoke-FileUpload.ps1
-The script supports HTTP and HTTPS, and currently does not support PowerShell Core (*and as an avid Core
-user -- it sucks*) because I am ignorant as **SHIT** on .NET... and don't even get me started on .NET Core.
+As of arbitrary version number 2.0.1, the script now supports both legacy PowerShell (aka Desktop)
+and PowerShell Core.  It was a pain in the ass.  The only caveat is when using PowerShell Core,
+file MIME types are simply generated based off of a list of file extensions instead of proper file contents
+(*this is due to .NET Core not having a MimeMapping class**).
 
 If the **-File** or **-URL** parameters aren't used the user will be prompted for those values.
 
