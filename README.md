@@ -2,7 +2,11 @@
 PowerShell script to upload files over HTTPS to a custom Python-based flask server.
 
 # Overview
-This is a stripped down version of a project I was working on about a month ago.
+This is a small, stripped down version of a feature from a project I was working 
+on about a month ago, before I had a GitHub page.  Also, figured I'd revitalize it
+because I was getting tired of constantly having to use a thumbdrive to move tiny
+documents from my desktop to my laptop; I do **NOT** endorse malicious use of this
+content.
 
 The idea is that one system will host '**upload_server.py**', and using **Invoke-FileUpload** you
 can upload files to said system hosting the server over an HTTPS connection (*utilizing self-signed
@@ -51,7 +55,7 @@ If the **-File** or **-URL** parameters aren't used the user will be prompted fo
 
 The script also has an alias titled '**upload**'
 
-**Tip:**  Change the "<URL>" default value below the alias to the URL of web server.
+**Tip:**  Paste the script into your **$PROFILE** and change the default URL value below the alias to the upload webpage.
 
 **PARAMETERS:**
 
