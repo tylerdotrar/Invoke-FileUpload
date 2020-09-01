@@ -5,8 +5,8 @@ PowerShell script to upload files over HTTPS to a custom Python-based flask serv
 This is a stripped down version of a project I was working on about a month ago.
 
 The idea is that one system will host '**upload_server.py**', and using **Invoke-FileUpload** you
-can upload files to said system hosting the server over an HTTPS connection (utilizing self-signed
-certificates) entirely via PowerShell.  The server is specifically configured to only accept POST
+can upload files to said system hosting the server over an HTTPS connection (*utilizing self-signed
+certificates*) entirely via PowerShell.  The server is specifically configured to only accept POST
 requests from the script.
 
 # upload_server.py
@@ -14,7 +14,20 @@ The server is entirely self contained, not requiring HTML templates or communica
 browser.  By default, the server utilizes port **54321**, with **/upload** being the only hosted
 webpage -- the default (local) URL for the web server is **https://localhost:54321/upload**.
 
-To use HTTP instead of HTTPS, remove "**ssl_context='adhoc'** from the bottom line.
+To use HTTP instead of HTTPS, remove **ssl_context='adhoc'** from the bottom line.
+
+The server is also configured to respond with successful **200** status codes, regardless of if the upload
+was successful; the response message should indicate the actual upload status or error.
+
+**200 OK STATUS CODES / SERVER MESSAGES:**
+
+ *[] "FILETYPE NOT ALLOWED"  --  File extension not contained in extension list.*
+ 
+ *[] "FILENAME NULL"  -- File was POST'd, but the filename was empty.*
+ 
+ *[] "UPLOAD ONLY"  --  GET request to the upload webpage*
+ 
+ *[] "SUCCESSFUL UPLOAD" --  File successfully uploaded to 'uploads' folder
 
 **ACCEPTED FILETYPES:**
 
@@ -31,8 +44,8 @@ By default, the server only accepts '**.png**', '**.jpg**', '**.pdf**', '**.txt*
   *[] Folder named "**uploads**" in the same directory as the server
 
 # Invoke-FileUpload.ps1
-The script supports HTTP and HTTPS, and currently does not support PowerShell Core (and as an avid Core
-user -- it sucks) because I am ignorant as **SHIT** on .NET... and don't even get me started on .NET Core.
+The script supports HTTP and HTTPS, and currently does not support PowerShell Core (*and as an avid Core
+user -- it sucks*) because I am ignorant as **SHIT** on .NET... and don't even get me started on .NET Core.
 
 If the **-File** or **-URL** parameters aren't used the user will be prompted for those values.
 
@@ -64,4 +77,4 @@ Enter filename: *RealPic.png*
 
 Enter server URL: *https://localhost:54321/upload*
 
-Server Response (HTTP): SUCCESSFUL UPLOAD
+Server Response (HTTPS): SUCCESSFUL UPLOAD
