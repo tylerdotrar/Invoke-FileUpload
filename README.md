@@ -9,7 +9,7 @@ documents from my desktop to my laptop.
 
 I do **NOT** endorse malicious use of this content in any way, shape, or form.
 
-The idea is that one system will host '**upload_server.py**', and using **Invoke-FileUpload** you
+The idea is that one system will host '**upload_server.py**', and using **Invoke-FileUpload.ps1** you
 can upload files to said system hosting the server over an HTTPS connection (*utilizing self-signed
 certificates*) entirely via PowerShell.  The server is specifically configured to only accept POST
 requests from the script.
@@ -32,7 +32,7 @@ was successful; the response message should indicate the actual upload status or
  
  *[] "UPLOAD ONLY"  --  GET request to the upload webpage*
  
- *[] "SUCCESSFUL UPLOAD" --  File successfully uploaded to 'uploads' folder
+ *[] "SUCCESSFUL UPLOAD" --  File successfully uploaded to 'uploads' folder*
 
 **ACCEPTED FILETYPES:**
 
