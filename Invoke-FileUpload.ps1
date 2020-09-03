@@ -1,13 +1,19 @@
 ﻿function Invoke-FileUpload {
 #.SYNOPSIS
-# Python x PowerShell file transfer.
-# ARBITRARY VERSION NUMBER:  2.0.1
+# Python x PowerShell file transfer script.
+# ARBITRARY VERSION NUMBER:  2.1.3
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
-# Script designed to upload files to a custom Python-based flask web server.  Supports HTTP and HTTPS
-# protocols.  Python server should only accept files sent from this script due to a modified content
-# disposition header name. Version 2.0.0 now supprts PowerShell Core.  
+# This script is designed to upload files to a custom Python-based flask web server; supporting both HTTP
+# and HTTPS protocols.  The Python web server should only accept files sent from this script due to the
+# modified HTTP Content-Disposition header name.
+#
+# Version 2.0.0 now supports PowerShell Core.
+#
+# Recommendations:
+#    -- Place script contents inside user $PROFILE instead of calling 'Invoke-FileUpload.ps1'
+#    -- Replace the default URL value if you don't plan on modifying server settings
 #
 # Parameters:
 #    -File    -->   File to upload to the web server
@@ -15,24 +21,31 @@
 #    -Help    -->   Return Get-Help information
 #    
 # Example Usage:
-#    [ ]  PS C:\Users\Bobby> Invoke-FileUpload -File "NotReal.txt" -URL https://localhost:8081/upload
-#     -   File does not exist!
+#    []  PS C:\Users\Bobby> Invoke-FileUpload -File 'FakeFile.txt' -URL 'https://localhost:54321/upload'
+#        File does not exist!
 #
-#    [ ]  PS C:\Users\Bobby> Invoke-FileUpload -File "RealFile.txt" -URL https://localhost:8081/upload
-#     -   Server Response (HTTPS): SUCCESSFUL UPLOAD
+#    []  PS C:\Users\Bobby> upload .\RealFile.txt localhost:54321/upload
+#        URL neither HTTP nor HTTPS!
 #
-#    [ ]  PS C:\Users\Bobby> upload
-#     -   Enter filename: RealPic.png
-#     -   Enter server URL: https://localhost:8081/upload
-#     -
-#     -   Server Response (HTTPS): SUCCESSFUL UPLOAD
+#    []  PS C:\Users\Bobby> Invoke-FileUpload -File 'RealFile.txt' -URL 'https://localhost:54321/upload'
+#        Server Response (HTTPS): SUCCESSFUL UPLOAD
 #
-#    [ ]  PS C:\Users\Bobby> upload -File "RealFile.txt" -URL localhost:8081/upload
-#     -   URL neither http or https!
+#    []  PS C:\Users\Bobby> upload
+#        Enter filename: RealPic.png
+#        Enter server URL: http://192.168.0.25:54321/upload
+#        Server Response (HTTP): SUCCESSFUL UPLOAD
+#
+#.LINK
+# https://github.com/tylerdotrar/Invoke-FileUpload
 
 
     [Alias('upload')]
-    Param ( [string]$File, [uri]$URL='<URL>', [switch]$Help )
+
+    Param (
+        [string]$File,
+        [uri]$URL='<url>',
+        [switch]$Help
+    )
 
 
     # Return Get-Help information
@@ -40,22 +53,27 @@
 
 
     # Prompt for File and/or Server URL
-    if (!$File -or ($URL -eq '<URL>')) {
+    if (!$File -or ($URL -eq '<url>')) {
 
-        if (!$File) { Write-Host "Enter filename: " -ForegroundColor Yellow -NoNewline ; $File = Read-Host }
+        if (!$File) { Write-Host 'Enter filename: ' -ForegroundColor Yellow -NoNewline ; $File = Read-Host }
 
-        if ($URL -eq '<URL>') { Write-Host "Enter server URL: " -ForegroundColor Yellow -NoNewline ; $URL = Read-Host }
+        if ($URL -eq '<URL>') { Write-Host 'Enter server URL: ' -ForegroundColor Yellow -NoNewline ; $URL = Read-Host }
 
-        Write-Host ""
     }
 
     
-    # Bypass self-signed certs (HTTPS)
+    # [!] Required by non-Core PowerShell for self-signed certificate bypass and HttpClient / HttpClientHandler creation
+    if ($PSEdition -ne 'Core') {
+        Add-Type -AssemblyName System.Net.Http
+    }
+
+
+    # Self-signed certificate bypass (HTTPS)
     if ($URL -like "https://*") {
 
-        $CertBypass = @"
+        # C# code for HttpClientHandler certificate validation bypass (.NET Version Independent)
+        $CertBypass = @'
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -70,92 +88,97 @@ namespace SelfSignedCerts
             };
     }
 }
-"@
-        $Protocol = "HTTPS"
-
-        if ($PSVersionTable.PSEdition -eq 'Core') {
-            Add-Type $CertBypass
-        }
-        else {
-            Add-Type -AssemblyName System.Net.Http
+'@
+        
+        # Reference [!] comment above
+        if ($PSEdition -ne 'Core') {
             Add-Type $CertBypass -ReferencedAssemblies System.Net.Http
         }
+        else {
+            Add-Type $CertBypass
+        }
+
+        $Protocol = 'HTTPS'
+
     }
 
     # Continue regularly (HTTP)
     elseif ( $URL -like "http://*") {
-        $Protocol = "HTTP"
+        $Protocol = 'HTTP'
     }
 
     # Incorrect URL format (neither)
     else {
-        Write-Host "URL neither http or https!" -ForegroundColor DarkRed
+        Write-Host 'URL neither HTTP nor HTTPS!' -ForegroundColor DarkRed
         return
     }
     
 
-    # Verify File
+    # Verify input file exists
     if (Test-Path -LiteralPath $File) {
         $TempFileName = Split-Path -Leaf $File
         $File = (Get-Item $File).FullName
     }
 
     else {
-        Write-Host "File does not exist!" -ForegroundColor DarkRed
+        Write-Host 'File does not exist!' -ForegroundColor DarkRed
         return
     }
 
 
-    # Mime Type Detection (PowerShell Core)
+    # MIME Type Detection (PowerShell Core)
     if ($PSVersionTable.PSEdition -eq 'Core') {
 
-        # Create Content Type Map
+        # Extension-Based Content-Type Map
         $MimeTypeMap = @{
-	        ".txt"  = "text/plain";
-	        ".jpg"  = "image/jpeg";
-	        ".jpeg" = "image/jpeg";
-	        ".png"  = "image/png";
-	        ".gif"  = "image/gif";
-	        ".zip"  = "application/zip";
-	        ".rar"  = "application/x-rar-compressed";
-	        ".gzip" = "application/x-gzip";
-	        ".json" = "application/json";
-	        ".xml"  = "application/xml";
+            '.txt'   =  'text/plain';
+            '.jpg'   =  'image/jpeg';
+            '.jpeg'  =  'image/jpeg';
+            '.png'   =  'image/png';
+            '.gif'   =  'image/gif';
+            '.zip'   =  'application/zip';
+            '.rar'   =  'application/x-rar-compressed';
+            '.gzip'  =  'application/x-gzip';
+            '.json'  =  'application/json';
+            '.xml'   =  'application/xml';
+            '.ps1'   =  'application/octet-stream';
         }
 
-        # Get file Mime type (Content-Type)
+        # Get file MIME type / Content-Type (Hard-Coded)
         $Extension = (Get-Item $File).Extension.ToLower()
         $ContentType = $MimeTypeMap[$Extension]
     }
 
-    # Mime Type Detection (Desktop PowerShell)
+
+    # MIME Type Detection (Desktop PowerShell)
     else {
 
-        # Get file Mime type (Content-Type)
+        # Get file MIME type / Content-Type (.NET)
         Add-Type -AssemblyName System.Web
         $ContentType = [System.Web.MimeMapping]::GetMimeMapping($File)
     }
 
 
-    # Create a Class for Sending / Receiving HTTP(s) Data
-    Add-Type -AssemblyName System.Net.Http
-    $httpClientHandler = [System.Net.Http.HttpClientHandler]::new()
+    # Create a message handler object for the HttpClient (.NET)
+    $Handler = [System.Net.Http.HttpClientHandler]::new()
 
     if ($Protocol -eq 'HTTPS') {
-        $httpClientHandler.ServerCertificateCustomValidationCallback = [SelfSignedCerts.Bypass]::ValidationCallback
+        $Handler.ServerCertificateCustomValidationCallback = [SelfSignedCerts.Bypass]::ValidationCallback
     }
 
-    $httpClient = [System.Net.Http.HttpClient]::new($httpClientHandler)
+
+    # Create an HttpClient object for sending / receiving HTTP(S) data (.NET)
+    $httpClient = [System.Net.Http.HttpClient]::new($Handler)
 
 
     ## Start Multipart Form Creation ##
 
     $FileStream = New-Object System.IO.FileStream @($File, [System.IO.FileMode]::Open)
-    $DispositionHeader = New-Object System.Net.Http.Headers.ContentDispositionHeaderValue "form-data"
+    $DispositionHeader = New-Object System.Net.Http.Headers.ContentDispositionHeaderValue 'form-data'
 
-    # IMPORTANT: Custom Python Server Specific
-    $DispositionHeader.Name = "`"TYLER.RAR`""
-    $DispositionHeader.FileName = "`"$TempFileName`""
+    # Custom Content-Disposition header name (Custom Python Server Specific)
+    $DispositionHeader.Name = 'TYLER.RAR'
+    $DispositionHeader.FileName = $TempFileName
 
     $StreamContent = New-Object System.Net.Http.StreamContent $FileStream
     $StreamContent.Headers.ContentDisposition = $DispositionHeader
@@ -176,13 +199,15 @@ namespace SelfSignedCerts
         Write-Host $ServerMessage
     }
 
-    # This error will appear if you put in an incorrect URL (and other things)
+
+    # This error will appear if you put in an incorrect URL (or other less obvious things)
     Catch { 
-        Write-Host "File failed to upload!" -ForegroundColor DarkRed
+        Write-Host 'Failed to reach the server!' -ForegroundColor DarkRed
         return
     }
 
-    # Cleanup Hanging Processes / Remove Self-Signed Certificate Bypass
+
+    # Cleanup Hanging Processes
     Finally {
         if ($NULL -ne $httpClient) { $httpClient.Dispose() }
         if ($NULL -ne $Transmit) { $Transmit.Dispose() }
