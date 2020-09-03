@@ -1,6 +1,8 @@
 # Invoke-FileUpload
 Python x PowerShell encrypted file transfer using a custom Python-based flask server and self-signed certs.
 
+<img src="https://gfycat.com/scratchyeducateddragon" width="1024" height="536" />
+
 # Overview
 This is a small, stripped down version of a feature from a project I was working 
 on about a month ago, before I had a GitHub page.  Also, figured I'd revitalize it
