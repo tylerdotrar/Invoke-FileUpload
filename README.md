@@ -24,7 +24,7 @@ Tested on PowerShell **v5.1.19041.1** (Desktop), **v7.0.3** (Core), and **v7.1.0
 # Invoke-UploadServer.ps1 / upload_server.py
 The server is entirely self contained, not requiring HTML templates or communications with a web
 browser.  By default, the server utilizes port **54321**, with **/upload** being the only hosted
-webpage -- the default (local) URL for the web server is **http://localhost:54321/upload**.
+webpage -- the default (local) URL for the web server is `http://localhost:54321/upload`.
 
 As of version 2.0.0, '**upload_server.py**' now supports parameters for quick configuration.  These 
 parameters are included (and expanded upon) in '**Invoke-UploadServer.ps1**'.
@@ -35,39 +35,47 @@ parameters are included (and expanded upon) in '**Invoke-UploadServer.ps1**'.
  
  *[] **--debug**  (Enable debugger)*
  
- *[] **--ip**  (Change default IP address)*
+ *[] **--ip**  (Change default IP address; NOT really recommended)*
  
- *[] **--port**  (Change default port)*
+ *[] **--port**  (Change default port; default 54321)*
  
- *[] **-Server** (Absolute path to 'upload_server.py'. If not input, script will attempt to find it; **Invoke-UploadServer**)*
+ (`Invoke-UploadServer.ps1 Specific:`)
  
- *[] **-Start**  (Start the server; **Invoke-UploadServer**)*
+ *[] **-Server** (Absolute path to 'upload_server.py'; if not input, script will attempt to find it)*
  
- *[] **-Stop**  (Stop the server; **Invoke-UploadServer**)*
+ *[] **-Start**  (Start the server; Only works if no instance of Python3.8 is running)*
  
- *[] **-Focus**  (Give new server window focus instead of returning focus to current terminal; **Invoke-UploadServer**)*
+ *[] **-Stop**  (Stop the server; Not reliable if more than one instance of Python3.8 is running)*
  
- *[] **-Help** (Return Get-Help Information; **Invoke-UploadServer**)*
+ *[] **-Focus**  (Give new server window focus instead of returning focus to current terminal)*
+ 
+ *[] **-Help** (Return Get-Help Information)*
  
 **Python Syntax:**
-PS C:\Users\Bobby> *python3 .\upload_server.py --port 8081 --ssl*
 
-**PowerShell Syntax:**
-**[1]** PS C:\Users\Bobby> *Invoke-UploadServer -Start*
-**[2]** PS C:\Users\Bobby> *server -SSL -Port 4444 -Debug -Start*
+`PS C:\Users\Bobby> python3 .\upload_server.py --port 8081 --ssl`
+
+**PowerShell Syntax and Tips:**
+
+**[1]** `PS C:\Users\Bobby> Invoke-UploadServer -Start`
+**[2]** `PS C:\Users\Bobby> server -SSL -Port 4444 -Debug -Start`
+
+ -- Place script contents inside user **$PROFILE** instead of calling '**Invoke-UploadServer.ps1**' script
+ 
+ -- Replace the default **$Server** value (*`<absolutepath>`*) to the absolute path of '**upload_server.py**'
 
 The server is also configured to respond with successful **200** status codes, regardless of if the upload
 was successful; the response message should indicate the actual upload status or error.
 
 **200 OK STATUS CODES / SERVER MESSAGES:**
 
- *[] "FILETYPE NOT ALLOWED"  --  File extension not contained in extension list.*
+ *[] `"FILETYPE NOT ALLOWED"`  --  File extension not contained in extension list.*
  
- *[] "FILENAME NULL"  -- File was POST'd, but the filename was empty.*
+ *[] `"FILENAME NULL"`  -- File was POST'd, but the filename was empty.*
  
- *[] "UPLOAD ONLY"  --  GET request to the upload webpage*
+ *[] `"UPLOAD ONLY"`  --  GET request to the upload webpage*
  
- *[] "SUCCESSFUL UPLOAD" --  File successfully uploaded to 'uploads' folder*
+ *[] `"SUCCESSFUL UPLOAD"` --  File successfully uploaded to 'uploads' folder*
 
 **ACCEPTED FILETYPES:**
 
@@ -78,9 +86,9 @@ Modify the allowed extensions via the **[UPLOAD_EXTENSIONS]** variable.
 
   *[] Python installed (Microsoft Store Python3.8 will suffice)*
   
-  *[] In PowerShell: **pip install flask** (required for web server)*
+  *[] In PowerShell: `pip install flask` (required for web server)*
   
-  *[] In PowerShell: **pip install pyopensll** (required for HTTPS)*
+  *[] In PowerShell: `pip install pyopensll` (required for HTTPS)*
   
   *[] Folder named '**uploads**' in the same directory as the server; '**Invoke-UploadServer.ps1**'
   creates this folder if it doesn't already exist.*
@@ -95,7 +103,7 @@ If the **-File** or **-URL** parameters aren't used the user will be prompted fo
 
 The script also has an alias titled '**upload**'
 
-**Tip:**  Paste the script into your **$PROFILE** and change the default URL value below the alias to the upload webpage.
+**Tip:**  Paste the script into your **$PROFILE** and change the default URL value (*`<url>`*) to the upload webpage.
 
 **PARAMETERS:**
 
@@ -107,22 +115,22 @@ The script also has an alias titled '**upload**'
   
 **EXAMPLE USAGE:**
 
-**[]** PS C:\Users\Bobby> *Invoke-FileUpload -File 'NotReal.txt' -URL 'https://localhost:54321/upload'*
+**[]** `PS C:\Users\Bobby> Invoke-FileUpload -File 'NotReal.txt' -URL 'https://localhost:54321/upload'`
 
-File does not exist!
+`File does not exist!`
 
-**[]** PS C:\Users\Bobby> *upload .\RealFile.txt localhost:54321/upload*
+**[]** `PS C:\Users\Bobby> upload .\RealFile.txt localhost:54321/upload`
 
-URL neither HTTP nor HTTPS!
+`URL neither HTTP nor HTTPS!`
 
-**[]** PS C:\Users\Bobby> *Invoke-FileUpload -File 'RealFile.txt' -URL 'https://localhost:54321/upload'*
+**[]** `PS C:\Users\Bobby> Invoke-FileUpload -File 'RealFile.txt' -URL 'https://localhost:54321/upload'`
 
-Server Response (HTTPS): SUCCESSFUL UPLOAD
+`Server Response (HTTPS): SUCCESSFUL UPLOAD`
 
-**[]** PS C:\Users\Bobby> *upload*
+**[]** `PS C:\Users\Bobby> upload`
 
-Enter filename: *RealPic.png*
+`Enter filename: RealPic.png`
 
-Enter server URL: *http://192.168.0.25:54321/upload*
+`Enter server URL: http://192.168.0.25:54321/upload`
 
-Server Response (HTTP): SUCCESSFUL UPLOAD
+`Server Response (HTTP): SUCCESSFUL UPLOAD`
