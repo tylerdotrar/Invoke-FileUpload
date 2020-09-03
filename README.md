@@ -1,5 +1,5 @@
 # Invoke-FileUpload
-PowerShell script to upload files over HTTPS to a custom Python-based flask server.
+Python x PowerShell encrypted file transfer using a custom Python-based flask server and self-signed certs.
 
 # Overview
 This is a small, stripped down version of a feature from a project I was working 
@@ -9,19 +9,25 @@ documents from my desktop to my laptop.
 
 I do **NOT** endorse malicious use of this content in any way, shape, or form.
 
-The idea is that one system will host '**upload_server.py**', and using **Invoke-FileUpload.ps1** you
-can upload files to said system hosting the server over an HTTPS connection (*utilizing self-signed
-certificates*) entirely via PowerShell.  The server is specifically configured to only accept POST
-requests from the script.
+The idea is that one system will host '**upload_server.py**', and using '**Invoke-FileUpload.ps1**'
+you can upload files to said system hosting the server over an HTTPS connection (*utilizing self-signed
+certificates*) entirely via PowerShell.  The server is configured to only accept specific, modified POST
+requests from the **Invoke-FileUpload** script.
 
-Tested on PowerShell **v5.1.19041.1** and **v7.0.3** (Core).
+Recently included is '**Invoke-UploadServer.ps1**' -- a script that expedites the (already easy) process
+of starting, stopping, and configuring the Python server.  It even includes Windows Terminal support; 
+creating a new tab running the server, adjusting the title to relevenat server info, and tabbing back
+to the originally used window.
 
-# upload_server.py
+Tested on PowerShell **v5.1.19041.1** (Desktop), **v7.0.3** (Core), and **v7.1.0-preview.6** (Core).
+
+# Invoke-UploadServer.ps1 / upload_server.py
 The server is entirely self contained, not requiring HTML templates or communications with a web
 browser.  By default, the server utilizes port **54321**, with **/upload** being the only hosted
 webpage -- the default (local) URL for the web server is **http://localhost:54321/upload**.
 
-As of version 2.0.1, **upload_server.py** now supports parameters for quick configuration.
+As of version 2.0.0, '**upload_server.py**' now supports parameters for quick configuration.  These 
+parameters are included (and expanded upon) in '**Invoke-UploadServer.ps1**'.
 
 **PARAMETERS:**
 
@@ -33,7 +39,22 @@ As of version 2.0.1, **upload_server.py** now supports parameters for quick conf
  
  *[] **--port**  (Change default port)*
  
-**Syntax:** PS C:\Users\Bobby> *python3 .\upload_server.py --port 8081 --ssl* 
+ *[] **-Server** (Absolute path to 'upload_server.py'. If not input, script will attempt to find it; **Invoke-UploadServer**)*
+ 
+ *[] **-Start**  (Start the server; **Invoke-UploadServer**)*
+ 
+ *[] **-Stop**  (Stop the server; **Invoke-UploadServer**)*
+ 
+ *[] **-Focus**  (Give new server window focus instead of returning focus to current terminal; **Invoke-UploadServer**)*
+ 
+ *[] **-Help** (Return Get-Help Information; **Invoke-UploadServer**)*
+ 
+**Python Syntax:**
+PS C:\Users\Bobby> *python3 .\upload_server.py --port 8081 --ssl*
+
+**PowerShell Syntax:**
+**[1]** PS C:\Users\Bobby> *Invoke-UploadServer -Start*
+**[2]** PS C:\Users\Bobby> *server -SSL -Port 4444 -Debug -Start*
 
 The server is also configured to respond with successful **200** status codes, regardless of if the upload
 was successful; the response message should indicate the actual upload status or error.
@@ -61,13 +82,14 @@ Modify the allowed extensions via the **[UPLOAD_EXTENSIONS]** variable.
   
   *[] In PowerShell: **pip install pyopensll** (required for HTTPS)*
   
-  *[] Folder named "**uploads**" in the same directory as the server*
+  *[] Folder named '**uploads**' in the same directory as the server; '**Invoke-UploadServer.ps1**'
+  creates this folder if it doesn't already exist.*
 
 # Invoke-FileUpload.ps1
 As of arbitrary version number 2.0.1, the script now supports both legacy PowerShell (aka Desktop)
 and PowerShell Core.  It was a pain in the ass.  The only caveat is when using PowerShell Core,
-file MIME types are simply generated based off of a list of file extensions instead of proper file contents
-(*this is due to .NET Core not having a MimeMapping class*).
+file MIME types are simply generated based off of a hard-coded hashtable of file extensions rather
+than of proper file contents (*this is due to .NET Core not having a MimeMapping class*).
 
 If the **-File** or **-URL** parameters aren't used the user will be prompted for those values.
 
@@ -85,11 +107,15 @@ The script also has an alias titled '**upload**'
   
 **EXAMPLE USAGE:**
 
-**[]** PS C:\Users\Bobby> *Invoke-FileUpload -File "NotReal.txt" -URL https://localhost:54321/upload*
+**[]** PS C:\Users\Bobby> *Invoke-FileUpload -File 'NotReal.txt' -URL 'https://localhost:54321/upload'*
 
 File does not exist!
 
-**[]** PS C:\Users\Bobby> *Invoke-FileUpload -File "RealFile.txt" -URL https://localhost:54321/upload*
+**[]** PS C:\Users\Bobby> *upload .\RealFile.txt localhost:54321/upload*
+
+URL neither HTTP nor HTTPS!
+
+**[]** PS C:\Users\Bobby> *Invoke-FileUpload -File 'RealFile.txt' -URL 'https://localhost:54321/upload'*
 
 Server Response (HTTPS): SUCCESSFUL UPLOAD
 
@@ -97,6 +123,6 @@ Server Response (HTTPS): SUCCESSFUL UPLOAD
 
 Enter filename: *RealPic.png*
 
-Enter server URL: *https://localhost:54321/upload*
+Enter server URL: *http://192.168.0.25:54321/upload*
 
-Server Response (HTTPS): SUCCESSFUL UPLOAD
+Server Response (HTTP): SUCCESSFUL UPLOAD
