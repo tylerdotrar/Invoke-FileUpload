@@ -1,15 +1,13 @@
 ﻿function Invoke-FileUpload {
 #.SYNOPSIS
 # Python x PowerShell file transfer script.
-# ARBITRARY VERSION NUMBER:  2.1.3
+# ARBITRARY VERSION NUMBER:  2.1.4
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
 # This script is designed to upload files to a custom Python-based flask web server; supporting both HTTP
 # and HTTPS protocols.  The Python web server should only accept files sent from this script due to the
 # modified HTTP Content-Disposition header name.
-#
-# Version 2.0.0 now supports PowerShell Core.
 #
 # Recommendations:
 #    -- Place script contents inside user $PROFILE instead of calling 'Invoke-FileUpload.ps1'
@@ -43,7 +41,7 @@
 
     Param (
         [string]$File,
-        [uri]$URL='<url>',
+        [uri]$URL = '<url>',
         [switch]$Help
     )
 
@@ -57,7 +55,7 @@
 
         if (!$File) { Write-Host 'Enter filename: ' -ForegroundColor Yellow -NoNewline ; $File = Read-Host }
 
-        if ($URL -eq '<URL>') { Write-Host 'Enter server URL: ' -ForegroundColor Yellow -NoNewline ; $URL = Read-Host }
+        if ($URL -eq '<url>') { Write-Host 'Enter server URL: ' -ForegroundColor Yellow -NoNewline ; $URL = Read-Host }
 
     }
 
