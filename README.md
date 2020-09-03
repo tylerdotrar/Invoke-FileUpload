@@ -1,9 +1,9 @@
 # Invoke-FileUpload
 Python x PowerShell encrypted file transfer using a custom Python-based flask server and self-signed certs.
 
-![Test](https://cdn.discordapp.com/attachments/620986290317426698/751195478976102420/Invoke-FileUpload.gif)
+![Python x PowerShell](https://cdn.discordapp.com/attachments/620986290317426698/751195478976102420/Invoke-FileUpload.gif)
 
-<img src="https://cdn.discordapp.com/attachments/620986290317426698/751195478976102420/Invoke-FileUpload.gif" width="1024" height="536" />
+**Higher Res GIF: https://gfycat.com/scratchyeducateddragon**
 
 # Overview
 This is a small, stripped down version of a feature from a project I was working 
@@ -43,7 +43,7 @@ parameters are included (and expanded upon) in '**Invoke-UploadServer.ps1**'.
  
  *[] **--port**  (Change default port; default 54321)*
  
- (`Invoke-UploadServer.ps1 Specific:`)
+ **[`Invoke-UploadServer.ps1 Specific:`]**
  
  *[] **-Server** (Absolute path to 'upload_server.py'; if not input, script will attempt to find it)*
  
