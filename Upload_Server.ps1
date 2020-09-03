@@ -1,7 +1,7 @@
 ﻿function Upload-Server {
 #.SYNOPSIS
 # Python x PowerShell server automation script.
-# ARBITRARY VERSION NUMBER:  1.1.0
+# ARBITRARY VERSION NUMBER:  1.1.1
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -20,15 +20,14 @@
 # If not using Windows Terminal, the new terminal running server will be running the same version 
 # of PowerShell as this script.
 #
-#
 # Recommendations:
-#    -- Place script contents inside user $PROFILE instead of calling 'Upload-Server.ps1'
-#    -- Replace the default $Server value to absolute path of 'upload_server.py'
+#    -- Place script contents inside user $PROFILE instead of calling 'Upload-Server.ps1' script
+#    -- Replace the default $Server value (<absolutepath>) to the absolute path of 'upload_server.py'
 #
 # Parameters:
 #    -Start     -->  Start the upload server (ONLY works if NO other Python3.8 instance is open)
 #    -Stop      -->  Stop the upload server (unreliable if more than one Python3.8 instance is open)
-#    -Focus     -->  Change the WindowStyle to 'Normal' (default is 'Minimized')
+#    -Focus     -->  Give new server window focus (instead of returning focus to current terminal)
 #    -Help      -->  Return Get-Help information
 #
 #    (Server Configuration)
@@ -56,10 +55,9 @@
         [switch]$Stop,
         [switch]$Focus,
         [switch]$Help,
-        [string]$Server = 'C:\Users\mctyl\Documents\GitHub\Invoke-FileUpload\upload_server.py',
         
         # Server Options
-        #[string]$Server = '<absolutepath>',
+        [string]$Server = '<absolutepath>',
         [switch]$SSL,
         [switch]$Debug,
         [string]$IP,
