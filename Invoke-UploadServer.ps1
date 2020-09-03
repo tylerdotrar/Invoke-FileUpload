@@ -1,7 +1,7 @@
-﻿function Upload-Server {
+function Invoke-UploadServer {
 #.SYNOPSIS
 # Python x PowerShell server automation script.
-# ARBITRARY VERSION NUMBER:  1.1.1
+# ARBITRARY VERSION NUMBER:  1.2.1
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -21,7 +21,7 @@
 # of PowerShell as this script.
 #
 # Recommendations:
-#    -- Place script contents inside user $PROFILE instead of calling 'Upload-Server.ps1' script
+#    -- Place script contents inside user $PROFILE instead of calling 'Invoke-UploadServer.ps1' script
 #    -- Replace the default $Server value (<absolutepath>) to the absolute path of 'upload_server.py'
 #
 # Parameters:
@@ -38,7 +38,7 @@
 #    -Debug     -->  Enable debugger
 #    
 # Example Usage:
-#    []  PS C:\Users\Bobby> Upload-Server
+#    []  PS C:\Users\Bobby> Invoke-UploadServer
 #        No action specified.
 #
 #    []  PS C:\Users\Bobby> server -SSL -Port 4444 -Start
@@ -51,17 +51,17 @@
     [Alias('server')]
 
     Param ( 
-        [switch]$Start,
-        [switch]$Stop,
-        [switch]$Focus,
-        [switch]$Help,
+        [switch] $Start,
+        [switch] $Stop,
+        [switch] $Focus,
+        [switch] $Help,
         
         # Server Options
-        [string]$Server = '<absolutepath>',
-        [switch]$SSL,
-        [switch]$Debug,
-        [string]$IP,
-        [int]$Port
+        [string] $Server = '<absolutepath>',
+        [switch] $SSL,
+        [switch] $Debug,
+        [string] $IP,
+        [int]    $Port
     )
 
     
@@ -72,7 +72,21 @@
     }
 
 
-    # Server location not specified
+    # Attempt to find the server if it is not input
+    if ($Server -eq '<absolutepath>') {
+
+        $Temp = Get-ChildItem $env:USERPROFILE -Recurse -Name 'upload_server.py'
+
+        if ($Temp) { $Server = (Get-Item "$env:UserProfile\$Temp").FullName }
+    }
+    
+    # Verify server path is an absolute path
+    elseif (Test-Path -LiteralPath $Server) {
+        $Server = (Get-Item $Server).FullName
+    }
+ 
+
+    # Server location not properly specified
     if (($Server -eq '<absolutepath>') -or !(Test-Path -LiteralPath $Server)) {
         Write-Host 'Server does not exist!' -ForegroundColor Red
         return
@@ -90,7 +104,7 @@
         foreach ($WinTerm in $OpenWindows) {
 
             if ( ($WinTerm).StartTime -match (Get-Process -ID $PID).StartTime ) {
-                $WindowContext += @{"Main" = $WinTerm.ID}
+                $WindowContext += @{'Main' = $WinTerm.ID}
             }
             else { $WindowContext += @{"Arbitrary$Inc" = $WinTerm.ID} ; $Inc++ }
 
@@ -99,7 +113,7 @@
 
         # Get Index Number of Current Windows Terminal Session
         if ($WindowContext.count -eq 1) { $MainWindow = 1 }
-        else { $MainWindow = $($WindowContext.Keys).IndexOf("Main") + 1 }
+        else { $MainWindow = $($WindowContext.Keys).IndexOf('Main') + 1 }
 
         $UsingWindowsTerminal = $TRUE
     }
