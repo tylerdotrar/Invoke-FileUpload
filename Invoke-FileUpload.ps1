@@ -1,22 +1,26 @@
 ﻿function Invoke-FileUpload {
 #.SYNOPSIS
 # Python x PowerShell file transfer script.
-# ARBITRARY VERSION NUMBER:  2.1.4
+# ARBITRARY VERSION NUMBER:  2.1.5
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
-# This script is designed to upload files to a custom Python-based flask web server; supporting both HTTP
-# and HTTPS protocols.  The Python web server should only accept files sent from this script due to the
-# modified HTTP Content-Disposition header name.
+# This script is designed to upload files to a custom Python-based flask web server; supporting both HTTP and HTTPS 
+# protocols.  The Python web server should only accept files sent from this script due to the modified HTTP 
+# Content-Disposition header name.  If PowerShell Core is used, file MIME types are determined based off of a hard-
+# coded list of file extensions; whereas with Desktop Powershell, MIME types are automatically determined based off
+# of file contents.
+#
+# Alternate data streams (ADS) are NOT supported.
 #
 # Recommendations:
-#    -- Place script contents inside user $PROFILE instead of calling 'Invoke-FileUpload.ps1'
-#    -- Replace the default URL value if you don't plan on modifying server settings
+# -- Use 'FileTransfer.psm1' (and included instructions) from the repo to load this script from your $PROFILE.
+# -- Replace the default URL value if you don't plan on modifying server settings.
 #
 # Parameters:
-#    -File    -->   File to upload to the web server
-#    -URL     -->   URL of the server upload webpage
-#    -Help    -->   Return Get-Help information
+#    -File          -->   File to upload to the web server
+#    -URL           -->   URL of the server upload webpage
+#    -Help          -->   (Optional) Return Get-Help information
 #    
 # Example Usage:
 #    []  PS C:\Users\Bobby> Invoke-FileUpload -File 'FakeFile.txt' -URL 'https://localhost:54321/upload'
@@ -40,9 +44,9 @@
     [Alias('upload')]
 
     Param (
-        [string]$File,
-        [uri]$URL = '<url>',
-        [switch]$Help
+        [string] $File,
+        [uri]    $URL = '<url>',
+        [switch] $Help
     )
 
 
