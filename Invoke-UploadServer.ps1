@@ -1,7 +1,7 @@
 ﻿function Invoke-UploadServer {
 #.SYNOPSIS
 # Python x PowerShell server automation script.
-# ARBITRARY VERSION NUMBER:  1.5.2
+# ARBITRARY VERSION NUMBER:  1.5.3
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -21,8 +21,8 @@
 # -- Replace the default $Server value (<absolutepath>) to the absolute path of 'upload_server.py'
 #
 # Parameters:
-#    -Start         -->    Start the upload server (ONLY works if NO Python3.8 instance is open)
-#    -Stop          -->    Stop the upload server (unreliable if more than one Python3.8 instance is open)
+#    -Start         -->    Start the upload server (ONLY works if NO Python instance is open)
+#    -Stop          -->    Stop the upload server (unreliable if more than one Python instance is open)
 #    -Focus         -->    (Optional) Give new server window focus (instead of returning to current terminal)
 #    -Help          -->    (Optional) Return Get-Help information
 #
@@ -144,7 +144,7 @@
             if ($Port) { $Title += " : $Port" }
             else { $Title += ' : 54321' }
 
-            $Commands = "`$Host.UI.RawUI.WindowTitle = '$Title'; Set-Location -LiteralPath $ServerPath; Clear-Host; python3 $Server"
+            $Commands = "`$Host.UI.RawUI.WindowTitle = '$Title'; Set-Location -LiteralPath $ServerPath; Clear-Host; python $Server"
 
             if ($SSL) { $Commands += " --ssl" }
             if ($Debug) { $Commands += " --debug" }
@@ -161,7 +161,7 @@
             if ($Focus) { $Window = 'Normal' }
             else { $Window = 'Minimized' }
 
-            $Commands = "-WindowStyle $Window", "-Command Set-Location -LiteralPath $ServerPath ; python3 $Server"
+            $Commands = "-WindowStyle $Window", "-Command Set-Location -LiteralPath $ServerPath ; python $Server"
 
             if ($SSL) { $Commands[-1] += " --ssl" }
             if ($Debug) { $Commands[-1] += " --debug" }
@@ -172,7 +172,7 @@
   
 
     # Determine if server is already running (NOT ACCURATE)
-    $Running = Get-Process -Name python3.8 2>$NULL
+    $Running = Get-Process -Name python* 2>$NULL
 
 
     # Start server
@@ -213,7 +213,7 @@
     elseif ($Stop) {
 
         if ($Running) {
-            Stop-Process -Name python3.8
+            Stop-Process -Name python*
             Write-Host 'Server stopped.' -ForegroundColor Red
         }
 
