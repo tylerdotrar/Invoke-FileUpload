@@ -1,7 +1,7 @@
 ﻿function Invoke-UploadServer {
 #.SYNOPSIS
 # Python x PowerShell server automation script.
-# ARBITRARY VERSION NUMBER:  1.3.1
+# ARBITRARY VERSION NUMBER:  1.5.2
 # AUTHOR:  Tyler McCann (@tyler.rar)
 #
 #.DESCRIPTION
@@ -37,14 +37,14 @@
 #    []  PS C:\Users\Bobby> Invoke-UploadServer
 #        No action specified.
 #
-#    []  PS C:\Users\Bobby> server -SSL -Port 4444 -Start
+#    []  PS C:\Users\Bobby> Exfil-Server -SSL -Port 4444 -Start
 #        Server started.
 #
 #.LINK
 # https://github.com/tylerdotrar/Invoke-FileUpload
     
 
-    [Alias('server')]
+    [Alias('Exfil-Server')]
 
     Param ( 
         [switch] $Start,
@@ -60,9 +60,11 @@
         [int]    $Port
     )
 
-    
     # Return Get-Help information
     if ($Help) { return Get-Help Invoke-UploadServer }
+
+    # Failed to specify whether to start or stop server
+    elseif ((!$Start) -and (!$Stop)) { return (Write-Host 'No action specified.' -ForegroundColor Red) }
 
 
     # Skip unnecessary code for stopping the server.
@@ -71,9 +73,11 @@
         # Attempt to find the server if it is not input
         if ($Server -eq '<absolutepath>') {
 
-            $Temp = Get-ChildItem $env:USERPROFILE -Recurse -Name 'upload_server.py'
+            $RelPath = Get-ChildItem $env:USERPROFILE -Recurse -Name 'upload_server.py'
 
-            if ($Temp) { $Server = (Get-Item "$env:UserProfile\$Temp").FullName }
+            if ($RelPath.count -eq 0) { return (Write-Host 'Unable to find server.' -ForegroundColor Red) }
+            elseif ($RelPath.count -eq 1) { $Server = (Get-Item "$env:UserProfile\$RelPath").FullName }
+            else { $Temp = $RelPath[0] ; $Server = (Get-Item "$env:UserProfile\$Temp").FullName }
         }
     
         # Verify server path is an absolute path
@@ -84,8 +88,7 @@
 
         # Server location not properly specified
         if (($Server -eq '<absolutepath>') -or !(Test-Path -LiteralPath $Server)) {
-            Write-Host 'Server does not exist!' -ForegroundColor Red
-            return
+            return (Write-Host 'Server does not exist!' -ForegroundColor Red)
         }
     
 
@@ -216,8 +219,4 @@
 
         else { Write-Host 'Server is already stopped.' -ForegroundColor Red }
     }
-
-
-    # Failed to specify whether to start or stop server
-    else { Write-Host 'No action specified.' -ForegroundColor Red }
 }
