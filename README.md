@@ -1,11 +1,13 @@
 # Invoke-FileUpload
-Python x PowerShell encrypted file transfer using a custom Python-based flask server and self-signed certs.
+**This repository is outdated and no longer maintained.  Check out the successor `P2.FileTransfer` [here](https://github.com/tylerdotrar/P2.FileTransfer).**
 
 ![Python x PowerShell](https://cdn.discordapp.com/attachments/620986290317426698/751195478976102420/Invoke-FileUpload.gif)
 
-**Higher Res GIF: https://gfycat.com/scratchyeducateddragon**
+Higher resolution GIF [here](https://gfycat.com/scratchyeducateddragon).
 
 # Overview
+`Python x PowerShell encrypted file transfer using a custom Python-based flask server and self-signed certs.`
+
 This is a small, stripped down version of a feature from a project I was working 
 on about a month ago, before I had a GitHub page.  Also, figured I'd revitalize it
 because I was getting tired of constantly having to use a thumbdrive to move tiny
